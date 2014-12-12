@@ -1,4 +1,4 @@
-SMS Volt
-========
+SMS Vault
+=========
 
 Web based sms backup with search and conversation view

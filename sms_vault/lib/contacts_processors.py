@@ -68,6 +68,7 @@ class GoogleCSVContactsProcessor(object):
                     else:
                         contact_dict[fname] = rec[fname]
 
+            #print(contact_dict)
             #contacts.append(contact_dict)
             if 'Name' in contact_dict and contact_dict['Name']:
                 contact = Contact(name=contact_dict['Name'],

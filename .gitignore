@@ -9,6 +9,5 @@ build
 docs/_build
 *.egg-info
 *.bak
-data
 __pycache__
 

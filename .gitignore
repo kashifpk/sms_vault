@@ -10,4 +10,5 @@ docs/_build
 *.egg-info
 *.bak
 __pycache__
+GOOGLE_API_KEY.txt
 

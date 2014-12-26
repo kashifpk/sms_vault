@@ -72,6 +72,14 @@ def main(argv=sys.argv):
                 permission='admin'))
             db.flush()
 
+        if 0 == db.query(RoutePermission).filter_by(route_name=
+                                                    'import_smses').count():
+            db.add(RoutePermission(
+                route_name='import_smses',
+                method='ALL',
+                permission='admin'))
+            db.flush()
+
     #populate application models
     for app in enabled_apps:
         app_name = app.APP_NAME

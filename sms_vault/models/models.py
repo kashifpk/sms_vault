@@ -21,8 +21,21 @@ class UserCellNumber(Base):
 
     user_id = Column(Unicode(100), ForeignKey(User.user_id), primary_key=True)
     cell_number = Column(Unicode(50), primary_key=True)
+    default = Column(Boolean)
 
     user = relationship(User, backref=backref('cell_numbers'))
+    
+    @classmethod
+    def get_default_number(cls, user_id):
+        "Return user's default cell number"
+        
+        ret = None
+        rec = db.query(cls).filter_by(user_id=user_id, default=True).one()
+        
+        if rec:
+            ret = rec.cell_numbers
+        
+        return ret
 
 
 class SMS(Base):

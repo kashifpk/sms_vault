@@ -33,7 +33,7 @@ class UserCellNumber(Base):
         rec = db.query(cls).filter_by(user_id=user_id, default=True).one()
         
         if rec:
-            ret = rec.cell_numbers
+            ret = rec.cell_number
         
         return ret
 

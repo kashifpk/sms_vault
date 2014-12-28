@@ -27,11 +27,11 @@ class TSVProcessor(object):
 
         self.file_obj.seek(0)
         data = self.file_obj.read(500)
+        
         self.file_obj.seek(0)
         log.debug(data)
 
-        if (codecs.BOM_UTF8.decode('utf-8') == data[0] and
-                '+' == data[1] and '\t\t' in data):
+        if data.startswith(codecs.BOM_UTF8) and '+' == chr(data[3]) and b'\t\t' in data:
             return True
         else:
             return False
@@ -42,7 +42,8 @@ class TSVProcessor(object):
         # '+923435782789\t13/11/2014 18:58:30\tAbu ki med laani hy sath shop se.\t1'
         # 2 at the end is sent, 1 in incoming
         
-        number, timestamp, msg_text, msg_type = msg.strip('\t')
+        log.debug(msg)
+        number, timestamp, msg_text, msg_type = msg.split('\t')
         
         sms_obj = SMS(message=msg_text)
         sms_obj.timestamp = datetime.strptime(timestamp, "%d/%m/%Y %H:%M:%S")
@@ -67,25 +68,33 @@ class TSVProcessor(object):
         ret = dict(smses=[], errors=0, successful=0, error_messages=[])
 
         self.file_obj.seek(0)
-        data = self.file_obj.read()
+        data = self.file_obj.read().decode('utf-8')
 
         msgs = data.split('\t\t')
         
-        onwer_cell_number = UserCellNumber.get_default_number(owner_id)
+        owner_cell_number = UserCellNumber.get_default_number(owner_id)
 
-        if codecs.BOM_UTF8.decode('utf-8') == msgs[0]:
+        if codecs.BOM_UTF8.decode('utf-8') == msgs[0][0]:
             msgs[0] = msgs[0][1:]
 
         for msg in msgs:
             try:
                 #sms_obj.owner_id = ''
                 # set owner ID and msg_from number for sent smses
+                log.debug(msg)
+                if not msg.strip():
+                    continue
+                
+                log.debug(bytes(msg.encode('utf-8')))
                 msg_obj = self.parse_msg_string(msg, owner_cell_number)
+                msg_obj.owner_id = owner_id
+                
+                ret['smses'].append(msg_obj)
+                
                 ret['successful'] += 1
+                
             except Exception as exp:
                 ret['errors'] += 1
                 ret['error_messages'].append(str(exp))
-            
-            
-        
-
+                
+        return ret

@@ -15,8 +15,8 @@ def usage(argv):
     "Print usage help string for the script"
 
     cmd = os.path.basename(argv[0])
-    print(('usage: %s <config_uri>\n'
-          '(example: "%s development.ini user_id importfile1[ importfile2 ....]")' % (cmd, cmd)))
+    print(('\nusage: %s <config_uri>\n\n'
+          '     example: %s development.ini user_id importfile1[ importfile2 ....]' % (cmd, cmd)))
     sys.exit(1)
 
 
@@ -27,7 +27,15 @@ def get_importer(file_obj):
     is found for the file
     """
     
-    pass
+    for sms_processor_class in sms_processors:
+        file_processor = sms_processor_class(file_obj)
+        
+        log.debug(file_processor.valid_format())
+        
+        if file_processor.valid_format():
+            return file_processor
+    
+    return None
 
 
 def import_smses():
@@ -84,9 +92,32 @@ def main(argv=sys.argv):
         if not os.path.isfile(filename):
             log.error("{} does not exist".format(filename))
             continue
-            
-    
+        
+        file_obj = open(filename, mode='rb')
+        importer = get_importer(file_obj)
+        if not importer:
+            log.warn("No supported importer found for {}".format(filename))
+            file_obj.close()
+            continue
+        
+        log.info("Importing {} using {}".format(filename, importer.__class__.__name__))
+        ret = importer.get_smses(owner_id=user_id)
+        
+        import_summary = """
+        Total messages: {}
+        Successfully imported: {}
+        Failed: {}
+        """.format(ret['successful']+ret['errors'],
+                   ret['successful'],
+                   ret['errors'])
+        
+        log.info(import_summary)
+        if ret['errors'] > 0:
+            for error_msg in ret['error_msgs']:
+                log.error(error_msg)
 
-    #db.flush()
-    #transaction.commit()
+        db.add_all(ret['smses'])
+
+        db.flush()
+        transaction.commit()
 

@@ -177,7 +177,7 @@ class S60ZipMsgsContactsProcessor(ZipProcessor):
             file_info = zip_file.getinfo(subfilename)
             subfile = zip_file.open(file_info)
             file_data = subfile.read().decode('utf-16')
-            log.info(file_data)
+            log.debug(file_data)
             contact_name, contact_number = self.process_contact_string(file_data)
             log.info((contact_name, contact_number))
             if contact_name:

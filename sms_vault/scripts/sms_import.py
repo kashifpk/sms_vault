@@ -72,7 +72,7 @@ def main(argv=sys.argv):
         
         log.info(import_summary)
         if ret['errors'] > 0:
-            for error_msg in ret['error_msgs']:
+            for error_msg in ret['error_messages']:
                 log.error(error_msg)
 
         db.add_all(ret['smses'])

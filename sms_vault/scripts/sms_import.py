@@ -15,12 +15,12 @@ def usage(argv):
     "Print usage help string for the script"
 
     cmd = os.path.basename(argv[0])
-    print(('\nusage: %s <config_uri>\n\n'
+    print(('\nusage: %s <config_uri> input_filenames\n\n'
           '     example: %s development.ini user_id importfile1[ importfile2 ....]' % (cmd, cmd)))
     sys.exit(1)
 
 
-def get_importer(file_obj):
+def get_importer(filename):
     """
     Given a file object, traverses through available sms_processors and returns an
     importer object supporting import from the file. Returns None if no valid importer
@@ -28,7 +28,7 @@ def get_importer(file_obj):
     """
     
     for sms_processor_class in sms_processors:
-        file_processor = sms_processor_class(file_obj)
+        file_processor = sms_processor_class(filename)
         
         log.debug(file_processor.valid_format())
         
@@ -36,45 +36,6 @@ def get_importer(file_obj):
             return file_processor
     
     return None
-
-
-def import_smses():
-    ""
-
-    sms_import_map = {}
-    
-    for fieldname, field in request.POST.items():
-        if 'uploaders[]' == fieldname:
-            #print(field)
-            #print(dir(field))
-            #print(field.filename)
-            #print(field.length)
-            #print(field.type)
-            sms_import_map[field.filename] = {'file': field.file}
-            
-            for sms_processor_class in sms_processors:
-                file_processor = sms_processor_class(field.file)
-                
-                log.debug(field.filename)
-                log.debug(file_processor.__doc__)
-                log.debug(file_processor.valid_format())
-                
-                if file_processor.valid_format():
-                    sms_import_map[field.filename]['importer'] = file_processor
-                    log.debug("Found valid format for {}".format(field.filename))
-                    break
-            
-            
-            #file_data = field.file.read()
-            #print(file_data.encode('utf-8'))
-            #file_dict = {'file': request.static_url(APP_BASE + ':static/blog_images/' + field.filename),
-            #             'name': field.filename,
-            #             'width': 250, 'height': 250,
-            #             'type': field.type, 'size': 1000,
-            #             'uploadType': request.POST['uploadType']}
-            #ret.append(file_dict)
-    
-    log.warn(sms_import_map)
 
 
 def main(argv=sys.argv):
@@ -93,11 +54,9 @@ def main(argv=sys.argv):
             log.error("{} does not exist".format(filename))
             continue
         
-        file_obj = open(filename, mode='rb')
-        importer = get_importer(file_obj)
+        importer = get_importer(filename)
         if not importer:
             log.warn("No supported importer found for {}".format(filename))
-            file_obj.close()
             continue
         
         log.info("Importing {} using {}".format(filename, importer.__class__.__name__))

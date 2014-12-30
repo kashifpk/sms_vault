@@ -17,6 +17,10 @@ from pyck.lib import get_models, get_submodules
 import sms_vault
 
 
+#class NoCountController(AdminController):
+#    display_record_count = False
+    
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """

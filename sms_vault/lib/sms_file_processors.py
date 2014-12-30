@@ -103,8 +103,11 @@ class TSVProcessor(object):
 
 
 class ZipProcessor(object):
-    "Zip file containing one text file per message"
     """
+    Zip file containing one text file per message. These text files are normally
+    produced on Nokia Symbian Series 60 phones when using SMS Export app.
+    
+    
     >>> from zipfile import ZipFile
     >>> z = ZipFile('iru.zip', 'r')
     >>> z.namelist()
@@ -143,29 +146,31 @@ class ZipProcessor(object):
                 return False
         except Exception as exp:
             log.error(str(exp))
-            return False
+        
+        zip_file.close()
+        return False
         
 
     def parse_msg_string(self, msg, owner_cell_number):
         "Given a msg string, parses it and creates an SMS object"
         
-        # '+923435782789\t13/11/2014 18:58:30\tAbu ki med laani hy sath shop se.\t1'
-        # 2 at the end is sent, 1 in incoming
+        #>>> print(data.decode('utf-16'))
+        #From: Saima pindi warid <+923215331687>
+        #Date: 29/12/2014
+        #Time: 6:56 pm
+        #Content: 
+        #But thank u so much but ap kon hai?
+        #][V][Â§T€R
+        #][V][¡N|)
         
-        log.debug(msg)
-        number, timestamp, msg_text, msg_type = msg.split('\t')
+        new_contact = Contact()
+        msg_from, msg_date, msg_time, _, *msg_content = contact_str.split('\n')
+        msg_content = "\n".join(msg_content)
+        timestamp = msg_date.split(':')[1].strip() + ' ' + ':'.join(msg_time.split(':')[1:]).strip()
         
-        sms_obj = SMS(message=msg_text)
-        sms_obj.timestamp = datetime.strptime(timestamp, "%d/%m/%Y %H:%M:%S")
-        
-        if "1" == msg_type:
-            sms_obj.msg_from = number
-            sms_obj.msg_to = owner_cell_number
-            sms_obj.incoming = True
-        elif "2" == msg_type:
-            sms_obj.msg_from = owner_cell_number
-            sms_obj.msg_to = number
-            sms_obj.outgoing = True
+        sms_obj.msg_from = number
+        sms_obj.msg_to = owner_cell_number
+        sms_obj.incoming = True
         
         return sms_obj
     

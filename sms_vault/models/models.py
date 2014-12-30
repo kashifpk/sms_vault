@@ -66,6 +66,9 @@ class Contact(Base):
     extra_info = Column(JSON)
 
     owner = relationship(User, backref=backref('contacts'))
+    
+    def by_name(self, owner_id, name):
+        return db.query(Contact).filter_by(owner_id=owner_id, name=name).one()
 
 
 class ContactCellNumber(Base):

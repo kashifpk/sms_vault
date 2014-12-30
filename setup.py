@@ -59,6 +59,7 @@ setup(
     sms_vault_populate = sms_vault.scripts.populate:main
     sms_vault_newapp = sms_vault.scripts.newapp:main
     sms_vault_fetch_contact_photos = sms_vault.scripts.fetch_contact_photos:main
-    sms_vault_import = sms_vault.scripts.sms_import:main
+    sms_vault_import_msgs = sms_vault.scripts.sms_import:main
+    sms_vault_import_contacts = sms_vault.scripts.contacts_import:main
     """,
 )

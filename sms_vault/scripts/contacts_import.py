@@ -60,13 +60,15 @@ def main(argv=sys.argv):
             continue
         
         log.info("Importing {} using {}".format(filename, importer.__class__.__name__))
-        ret = importer.get_contacts(owner_id=user_id)
+        ret = importer.get_contacts(owner_id=user_id, add_to_db=True)
         
         import_summary = """
         Total contacts: {}
+        Total cellnumbers: {}
         Successfully imported: {}
         Failed: {}
-        """.format(ret['successful']+ret['errors'],
+        """.format(ret['total_contacts'],
+                   ret['total_numbers'],
                    ret['successful'],
                    ret['errors'])
         
@@ -75,7 +77,4 @@ def main(argv=sys.argv):
             for error_msg in ret['error_msgs']:
                 log.error(error_msg)
 
-        db.add_all(ret['contacts'])
-
-        db.flush()
         transaction.commit()

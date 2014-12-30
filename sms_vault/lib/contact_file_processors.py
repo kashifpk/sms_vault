@@ -130,11 +130,17 @@ class S60ZipMsgsContactsProcessor(ZipProcessor):
         "Processes contact string for format From: contact_name <+contact_num>"
 
         contact_line = contact_str.split('\n')[0].split(':')[1]
-        contact_name, contact_number = re.findall("(.*?)<(.*?)>", "<2352435>", re.I+re.U)[0]
+        log.warn(contact_line)
+        contact_name = ''
+        
+        if '<' in contact_line:
+            contact_name, contact_number = re.findall("(.*?)<(.*?)>", contact_line, re.I+re.U)[0]
+        else:
+            contact_number = contact_line
         
         return (contact_name.strip(), contact_number.strip())
     
-    def get_contacts(self, owner_id=None, add_to_db=False):
+    def get_contacts(self, owner_id=None, add_to_db=True):
         """
         Returns all contacts in form of Contact objects
         The optional owner_id if given sets the owner_id field of the Contact object
@@ -160,17 +166,20 @@ class S60ZipMsgsContactsProcessor(ZipProcessor):
             ][V][¡N|)
         """
         
-        ret = dict(contacs=[], total_contacts=0, total_numbers=0,
+        ret = dict(total_contacts=0, total_numbers=0,
                    errors=0, successful=0, error_messages=[])
         
         contacts_dict = {}
         
         zip_file = ZipFile(self.filename, 'r')
         for subfilename in zip_file.namelist():
+            log.info("Processing {} from the zip file".format(subfilename))
             file_info = zip_file.getinfo(subfilename)
             subfile = zip_file.open(file_info)
             file_data = subfile.read().decode('utf-16')
+            log.info(file_data)
             contact_name, contact_number = self.process_contact_string(file_data)
+            log.info((contact_name, contact_number))
             if contact_name:
                 
                 if contact_name not in contacts_dict:

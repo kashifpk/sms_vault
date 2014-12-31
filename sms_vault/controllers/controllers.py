@@ -6,12 +6,16 @@ from ..models import db
 
 from ..forms import ContactForm
 from ..lib import sms_processors
+from ..lib.stats import get_contact_message_counts
 
 log = logging.getLogger(__name__)
 
 @view_config(route_name='home', renderer='home.mako')
 def homepage(request):
-    return {'project': 'sms_vault'}
+    msg_counts = get_contact_message_counts(request.session['logged_in_user'])
+    log.warn(msg_counts)
+    
+    return {'msg_counts': msg_counts}
 
 @view_config(route_name='import_smses', renderer='import_smses.mako')
 def imprt_smses(request):

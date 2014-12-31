@@ -1,7 +1,7 @@
 <%!
 from sms_vault.auth import is_allowed
 
-auth_links = [('home', 'Home'), ('contact', 'Contact Us'),
+auth_links = [('home', 'Home'), ('import_smses', 'Import Messages'), ('import_contacts', 'Import Contacts'),
               ('admin.admin_index', 'Admin Section'), ('pyckauth_manager', 'Auth Manager')]
 
 %>
@@ -55,7 +55,7 @@ auth_links = [('home', 'Home'), ('contact', 'Contact Us'),
 </body>
 </html>
 
-<%def name="title()">The PyCK Web Application Development Framework</%def>
+<%def name="title()">SMS Valut</%def>
 
 <%def name="meta()">
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>

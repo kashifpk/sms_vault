@@ -194,10 +194,7 @@ def login(request):
             if request.session.get('came_from', None):
                 return HTTPFound(location=request.session.get('came_from'))
             else:
-                try:
-                    return HTTPFound(location=request.route_url('admin.admin_index'))
-                except Exception:
-                    return HTTPFound(location=request.route_url('home'))
+                return HTTPFound(location=request.route_url('home'))
         else:
             request.session.flash("Authentication Failed! Invalid user ID or password")
 

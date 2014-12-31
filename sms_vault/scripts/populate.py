@@ -58,7 +58,7 @@ def main(argv=sys.argv):
                 permission='admin',
                 description='Manage administrative section'))
             db.flush()
-
+        
         if 0 == db.query(UserPermission).count():
             db.add(UserPermission(
                 user_id='admin',
@@ -72,12 +72,30 @@ def main(argv=sys.argv):
                 permission='admin'))
             db.flush()
 
-        if 0 == db.query(RoutePermission).filter_by(route_name=
-                                                    'import_smses').count():
+        if not db.query(Permission).filter_by(permission='sms').first():
+            db.add(Permission(
+                permission='sms',
+                description='SMS users role for importing and viewing contacts and smses'))
+            db.flush()
+
+        if 0 == db.query(RoutePermission).filter_by(route_name='import_smses', permission='sms').count():
             db.add(RoutePermission(
                 route_name='import_smses',
                 method='ALL',
-                permission='admin'))
+                permission='sms'))
+            db.flush()
+        
+        if 0 == db.query(RoutePermission).filter_by(route_name='import_contacts', permission='sms').count():
+            db.add(RoutePermission(
+                route_name='import_contacts',
+                method='ALL',
+                permission='sms'))
+            db.flush()
+        
+        if 0 == db.query(UserPermission).filter_by(user_id='admin', permission='sms').count():
+            db.add(UserPermission(
+                user_id='admin',
+                permission='sms'))
             db.flush()
 
     #populate application models

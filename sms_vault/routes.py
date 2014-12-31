@@ -22,6 +22,7 @@ def application_routes(config):
     config.add_route('home', '/')
     config.add_route('contact', '/contact')
     config.add_route('import_smses', '/import')
+    config.add_route('import_contacts', '/import_contacts')
 
     config.add_route('pyckauth_login', '/login')
     config.add_route('pyckauth_logout', '/logout')

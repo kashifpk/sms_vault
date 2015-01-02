@@ -8,7 +8,7 @@ SMS Vault - SMS Backup Manager
   ${self.main_menu()}
 </%def>
   
-  <div class="row">
+  <div class="row" >
     <div class="panel panel-default col-md-6 col-lg-4 hidden-sm hidden-xs">
       <div class="panel-body">
         <div class="input-group">
@@ -20,28 +20,30 @@ SMS Vault - SMS Backup Manager
         
       </div>
       
+      <div  style="overflow-y: auto; height: 500px;">
       <ul class="nav nav-pills nav-stacked">
         <!--<li role="presentation" class="active"><a href="#">Home</a></li>-->
-        %for cell_number in msg_counts:
+        %for contact in msg_counts:
           <li role="presentation">
-            <a href="javascript:">${cell_number}
+            <a href="javascript:">${contact}
               
               <span class="badge">
                 <span class="glyphicon glyphicon-resize-small" aria-hidden="true"></span>
-                ${msg_counts[cell_number]['incoming']+msg_counts[cell_number]['outgoing']}
+                ${msg_counts[contact]['incoming']+msg_counts[contact]['outgoing']}
               </span>
               <span class="badge">
                 <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                ${msg_counts[cell_number]['incoming']}
+                ${msg_counts[contact]['incoming']}
               </span>
               
               <span class="badge">
                 <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
-                ${msg_counts[cell_number]['outgoing']}
+                ${msg_counts[contact]['outgoing']}
               </span>
             </a>
           </li>
         %endfor
       </ul>
+      </div>
     </div>
   </div>  

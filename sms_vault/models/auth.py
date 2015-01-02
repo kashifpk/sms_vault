@@ -34,6 +34,8 @@ class User(Base):
     password = Column(Unicode(40))
     email = Column(Unicode(200))
     full_name = Column(Unicode(200))
+    country_code = Column(Unicode(5))  # for example 92
+    mobile_network_prefix = Column(Unicode(3))  # for example 3
 
 
 class UserPermission(Base):

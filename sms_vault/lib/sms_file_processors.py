@@ -7,7 +7,8 @@ we need a class for each supported format.
 
 import codecs
 from datetime import datetime
-from ..models import SMS, UserCellNumber
+from ..models import db, User, SMS, UserCellNumber
+from .cell_number import normalize
 from zipfile import ZipFile
 import re
 import logging
@@ -38,7 +39,7 @@ class TSVProcessor(object):
         else:
             return False
 
-    def parse_msg_string(self, msg, owner_cell_number):
+    def parse_msg_string(self, msg, owner_cell_number, owner):
         "Given a msg string, parses it and creates an SMS object"
         
         # '+923435782789\t13/11/2014 18:58:30\tAbu ki med laani hy sath shop se.\t1'
@@ -46,6 +47,7 @@ class TSVProcessor(object):
         
         log.debug(msg)
         number, timestamp, msg_text, msg_type = msg.split('\t')
+        number = normalize(number, owner.country_code, owner.mobile_network_prefix)
         
         sms_obj = SMS(message=msg_text)
         sms_obj.timestamp = datetime.strptime(timestamp, "%d/%m/%Y %H:%M:%S")
@@ -74,6 +76,10 @@ class TSVProcessor(object):
 
         msgs = data.split('\t\t')
         
+        owner = db.query(User).filter_by(user_id=owner_id).first()
+        if not owner:
+            raise RuntimeError("Specified owner does not exist in the DB")
+        
         owner_cell_number = UserCellNumber.get_default_number(owner_id)
 
         if codecs.BOM_UTF8.decode('utf-8') == msgs[0][0]:
@@ -88,7 +94,7 @@ class TSVProcessor(object):
                     continue
                 
                 log.debug(bytes(msg.encode('utf-8')))
-                msg_obj = self.parse_msg_string(msg, owner_cell_number)
+                msg_obj = self.parse_msg_string(msg, owner_cell_number, owner)
                 msg_obj.owner_id = owner_id
                 
                 ret['smses'].append(msg_obj)
@@ -132,7 +138,7 @@ class ZipProcessor(object):
         return False
         
 
-    def parse_msg_string(self, msg, owner_cell_number):
+    def parse_msg_string(self, msg, owner_cell_number, owner):
         "Given a msg string, parses it and creates an SMS object"
                 
         sms_obj = SMS()
@@ -148,7 +154,9 @@ class ZipProcessor(object):
             msg_from = contact_line
         
         sms_obj.timestamp = datetime.strptime(timestamp, '%d/%m/%Y %I:%M %p')
-        sms_obj.msg_from = msg_from.strip()
+        sms_obj.msg_from = normalize(msg_from.strip(),
+                                     owner.country_code,
+                                     owner.mobile_network_prefix)
         sms_obj.msg_to = owner_cell_number
         sms_obj.incoming = True
         sms_obj.message = msg_content
@@ -163,6 +171,10 @@ class ZipProcessor(object):
         
         ret = dict(smses=[], errors=0, successful=0, error_messages=[])
         
+        owner = db.query(User).filter_by(user_id=owner_id).first()
+        if not owner:
+            raise RuntimeError("Specified owner does not exist in the DB")
+        
         owner_cell_number = UserCellNumber.get_default_number(owner_id)
 
         zip_file = ZipFile(self.filename, 'r')
@@ -173,7 +185,7 @@ class ZipProcessor(object):
                 subfile = zip_file.open(file_info)
                 file_data = subfile.read().decode('utf-16')
                 log.debug(file_data)
-                msg_obj = self.parse_msg_string(file_data, owner_cell_number)
+                msg_obj = self.parse_msg_string(file_data, owner_cell_number, owner)
                 msg_obj.owner_id = owner_id
                 
                 ret['smses'].append(msg_obj)

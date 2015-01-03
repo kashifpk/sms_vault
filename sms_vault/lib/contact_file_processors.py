@@ -6,7 +6,8 @@ we need a class for each supported format.
 """
 
 import codecs
-from ..models import db, Contact, ContactCellNumber
+from ..models import db, User, Contact, ContactCellNumber
+from .cell_number import normalize
 import csv
 from zipfile import ZipFile
 import json
@@ -57,6 +58,10 @@ class GoogleCSVContactsProcessor(object):
         fieldnames = reader.fieldnames
 
         contacts = []
+        
+        owner = db.query(User).filter_by(user_id=owner_id).first()
+        if not owner:
+            raise RuntimeError("Specified owner does not exist in the DB")
 
         #Phone 1 - Type,Phone 1 - Value,Phone 2 - Type,Phone 2 - Value,
         #Phone 3 - Type,Phone 3 - Value,Phone 4 - Type,Phone 4 - Value,
@@ -97,6 +102,10 @@ class GoogleCSVContactsProcessor(object):
                             if not cell_number:
                                 continue
 
+                            cell_number = normalize(cell_number,
+                                                    owner.country_code,
+                                                    owner.mobile_network_prefix)
+                            
                             prec = ContactCellNumber(cell_number=cell_number)
 
                             if add_to_db:
@@ -171,6 +180,10 @@ class S60ZipMsgsContactsProcessor(ZipProcessor):
         
         contacts_dict = {}
         
+        owner = db.query(User).filter_by(user_id=owner_id).first()
+        if not owner:
+            raise RuntimeError("Specified owner does not exist in the DB")
+        
         zip_file = ZipFile(self.filename, 'r')
         for subfilename in zip_file.namelist():
             log.info("Processing {} from the zip file".format(subfilename))
@@ -179,6 +192,10 @@ class S60ZipMsgsContactsProcessor(ZipProcessor):
             file_data = subfile.read().decode('utf-16')
             log.debug(file_data)
             contact_name, contact_number = self.process_contact_string(file_data)
+            contact_number = normalize(contact_number,
+                                       owner.country_code,
+                                       owner.mobile_network_prefix)
+            
             log.info((contact_name, contact_number))
             if contact_name:
                 

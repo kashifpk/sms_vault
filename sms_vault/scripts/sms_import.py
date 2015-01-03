@@ -15,7 +15,7 @@ def usage(argv):
     "Print usage help string for the script"
 
     cmd = os.path.basename(argv[0])
-    print(('\nusage: %s <config_uri> input_filenames\n\n'
+    print(('\nusage: %s <config_uri> user_id input_filenames\n\n'
           '     example: %s development.ini user_id importfile1[ importfile2 ....]' % (cmd, cmd)))
     sys.exit(1)
 

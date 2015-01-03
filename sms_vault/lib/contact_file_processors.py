@@ -20,15 +20,12 @@ import logging
 log = logging.getLogger(__name__)
 
 
-UTF8_MARKER = codecs.BOM_UTF8.decode('utf-8')
-
-
 class GoogleCSVContactsProcessor(object):
     "Support for processing CSV Contacts file exported from Gmail Contacts/Mail"
 
     def __init__(self, filename):
         self.filename = filename
-        self.file_obj = open(filename, mode='rb')
+        self.file_obj = open(filename, mode='r', encoding='utf-16')
 
     def valid_format(self):
         """
@@ -37,8 +34,12 @@ class GoogleCSVContactsProcessor(object):
         """
 
         self.file_obj.seek(0)
-        valid = (UTF8_MARKER + 'Name,Given Name,'
-                 == self.file_obj.read(17))
+        try:
+            valid = 'Name,Given Name,' == self.file_obj.read(16)
+        except Exception as exp:
+            log.warn(str(exp))
+            return False
+        
         self.file_obj.seek(0)
 
         return valid
@@ -52,12 +53,14 @@ class GoogleCSVContactsProcessor(object):
         to db session and flushed so the calling function/method only needs to commit
         """
 
-        ret = dict(contacts=[], errors=0, successful=0, error_messages=[])
+        ret = dict(total_contacts=0, total_numbers=0,
+                   errors=0, successful=0, error_messages=[])
         
         reader = csv.DictReader(self.file_obj)
         fieldnames = reader.fieldnames
 
         contacts = []
+        added_numbers = []
         
         owner = db.query(User).filter_by(user_id=owner_id).first()
         if not owner:
@@ -76,13 +79,9 @@ class GoogleCSVContactsProcessor(object):
                 val = rec.get(fname, '')
 
                 if val is not None and len(val.strip()) > 0:
+                    contact_dict[fname] = rec[fname]
 
-                    if UTF8_MARKER == fname[0]:
-                        contact_dict[fname[1:]] = rec[fname]
-                    else:
-                        contact_dict[fname] = rec[fname]
-
-            #print(contact_dict)
+            log.debug(contact_dict)
             #contacts.append(contact_dict)
             if 'Name' in contact_dict and contact_dict['Name']:
                 contact = Contact(name=contact_dict['Name'],
@@ -106,27 +105,36 @@ class GoogleCSVContactsProcessor(object):
                                                     owner.country_code,
                                                     owner.mobile_network_prefix)
                             
+                            if cell_number in added_numbers:
+                                continue
+                            
                             prec = ContactCellNumber(cell_number=cell_number)
+                            added_numbers.append(cell_number)
 
                             if add_to_db:
                                 if not contact_added:
                                     contact_added = True
                                     db.add(contact)
                                     db.flush()
+                                    ret['total_contacts'] += 1
                                     
                                 prec.contact_id = contact.id
                                 try:
                                     db.add(prec)
                                     db.flush()
+                                    ret['total_numbers'] += 1
+                                    ret['successful'] += 1
+                                    
                                 except FlushError as exp:
-                                    print(exp)
+                                    ret['errors'] += 1
+                                    ret['error_messages'].append(str(exp))  
 
                             contact_numbers.append(prec)
 
                 contacts.append({'contact': contact,
                                  'cell_numbers': contact_numbers})
 
-        return contacts
+        return ret
 
 
 class S60ZipMsgsContactsProcessor(ZipProcessor):

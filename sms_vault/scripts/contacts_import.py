@@ -61,6 +61,7 @@ def main(argv=sys.argv):
         
         log.info("Importing {} using {}".format(filename, importer.__class__.__name__))
         ret = importer.get_contacts(owner_id=user_id, add_to_db=True)
+        log.debug(ret)
         
         import_summary = """
         Total contacts: {}

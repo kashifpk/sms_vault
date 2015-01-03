@@ -123,8 +123,11 @@ class ZipProcessor(object):
         Otherwise returns False
         """
 
+        if not self.filename.lower().endswith('.zip'):
+            return False
+        
+        zip_file = ZipFile(self.filename)
         try:
-            zip_file = ZipFile(self.filename)
             zipinfo = zip_file.getinfo(zip_file.namelist()[0])
 
             if self.filename.lower().endswith('.zip') and zip_file.open(zipinfo).read().decode('utf-16').startswith('From:'):
@@ -135,8 +138,8 @@ class ZipProcessor(object):
             log.error(str(exp))
         
         zip_file.close()
-        return False
         
+        return False
 
     def parse_msg_string(self, msg, owner_cell_number, owner):
         "Given a msg string, parses it and creates an SMS object"

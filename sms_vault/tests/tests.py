@@ -5,6 +5,8 @@ from pyramid import testing
 from ..models import db, User, Base
 from . import TestBase, FunctionalTestBase
 
+import logging
+log = logging.getLogger(__name__)
 
 class TestSite(TestBase):
     "Unit and Integration tests"
@@ -23,9 +25,11 @@ class TestSite(TestBase):
         from ..controllers.controllers import homepage
 
         request = testing.DummyRequest()
+        request.session['logged_in_user'] = 'admin'
         response = homepage(request)
+        log.info(response)
 
-        self.assertEqual(response['project'], 'sms_vault')
+        assert 'msg_counts' in response
 
 
 class TestSiteFunctional(FunctionalTestBase):

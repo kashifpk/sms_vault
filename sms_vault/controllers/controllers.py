@@ -6,7 +6,7 @@ from ..models import db
 
 from ..forms import ContactForm
 from ..lib import sms_processors
-from ..lib.stats import get_contact_message_counts
+from ..lib.stats import get_contact_message_counts, contact_messages
 from ..lib.sort import alphanumeric_sort
 from collections import OrderedDict
 
@@ -30,6 +30,15 @@ def msg_counts(request):
         ret[contact] = msg_counts[contact]
     
     return ret
+
+
+@view_config(route_name='contact_msgs', renderer='json')
+def contact_messages_view(request):
+    
+    msgs = contact_messages(request.session['logged_in_user'],
+                            request.matchdict['contact'])
+    
+    return msgs
 
 
 @view_config(route_name='import_smses', renderer='import_smses.mako')

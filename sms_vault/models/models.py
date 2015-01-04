@@ -10,11 +10,11 @@ from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import backref, relationship
 
-from . import db, Base
+from . import db, Base, OrmObject
 from .auth import User
 
 
-class UserCellNumber(Base):
+class UserCellNumber(Base, OrmObject):
     "Cell numbers that belong to the user"
 
     __tablename__ = 'user_cell_numbers'
@@ -38,7 +38,7 @@ class UserCellNumber(Base):
         return ret
 
 
-class SMS(Base):
+class SMS(Base, OrmObject):
     "SMS record storage"
 
     __tablename__ = 'smses'
@@ -55,7 +55,7 @@ class SMS(Base):
     owner = relationship(User, backref=backref('smses'))
 
 
-class Contact(Base):
+class Contact(Base, OrmObject):
     "SMS Contact"
 
     __tablename__ = 'contacts'
@@ -67,11 +67,12 @@ class Contact(Base):
 
     owner = relationship(User, backref=backref('contacts'))
     
-    def by_name(self, owner_id, name):
-        return db.query(Contact).filter_by(owner_id=owner_id, name=name).one()
+    @classmethod
+    def by_name(cls, owner_id, name):
+        return db.query(cls).filter_by(owner_id=owner_id, name=name).one()
 
 
-class ContactCellNumber(Base):
+class ContactCellNumber(Base, OrmObject):
     "Cell numbers that belong to a contact"
 
     __tablename__ = 'contact_cell_numbers'

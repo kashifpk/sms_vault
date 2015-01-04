@@ -2,7 +2,7 @@
 
 
 from ..models.models import db, SMS, Contact, ContactCellNumber, UserCellNumber
-from sqlalchemy import func
+from sqlalchemy import func, and_, or_
 
 import logging
 log = logging.getLogger(__name__)
@@ -36,6 +36,7 @@ def get_message_count_by_cellnumber(user_id):
     
     return msg_counts
 
+
 def get_contact_message_counts(user_id):
     "Returns contacts with count of sent and received messages"
     
@@ -61,3 +62,34 @@ def get_contact_message_counts(user_id):
             contact_counts[contact_name] = msg_counts[cellnum]
     
     return contact_counts
+
+
+def contact_messages(owner_id, contact_name):
+    "returns contact messages for given contact"
+    
+    contact = Contact.by_name(owner_id, contact_name)
+    cell_numbers = []
+    
+    for cellnum in contact.cell_numbers:
+        cell_numbers.append(cellnum.cell_number)
+    
+    #select * from smses where owner_id='kashif' and
+    #( (incoming='t' and msg_from in ('+923437158780')) OR (outgoing='t' and msg_to in ('+923437158780')) )
+    #order by timestamp desc;
+    query = db.query(SMS).filter(
+        and_(
+            SMS.owner_id==owner_id,
+            or_(
+                and_(
+                    SMS.incoming==True,
+                    SMS.msg_from.in_(cell_numbers)
+                ),
+                and_(
+                    SMS.outgoing==True,
+                    SMS.msg_to.in_(cell_numbers)
+                )
+            )
+        )
+    ).order_by(SMS.timestamp.desc())
+    
+    return query.all()

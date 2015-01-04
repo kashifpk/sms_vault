@@ -23,7 +23,7 @@ SMS Vault - SMS Backup Manager
       <div  style="overflow-y: auto; height: 500px;">
       <ul class="nav nav-pills nav-stacked">
         <!--<li role="presentation" class="active"><a href="#">Home</a></li>-->
-        %for contact in msg_counts:
+        %for contact in contact_names:
           <li role="presentation">
             <a href="javascript:">${contact}
               

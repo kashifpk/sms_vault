@@ -7,6 +7,7 @@ from ..models import db
 from ..forms import ContactForm
 from ..lib import sms_processors
 from ..lib.stats import get_contact_message_counts
+from ..lib.sort import alphanumeric_sort
 
 log = logging.getLogger(__name__)
 
@@ -14,8 +15,10 @@ log = logging.getLogger(__name__)
 def homepage(request):
     msg_counts = get_contact_message_counts(request.session['logged_in_user'])
     log.warn(msg_counts)
+    sorted_contacts = alphanumeric_sort(msg_counts.keys())
     
-    return {'msg_counts': msg_counts}
+    return {'msg_counts': msg_counts, 'contact_names': sorted_contacts}
+
 
 @view_config(route_name='import_smses', renderer='import_smses.mako')
 def imprt_smses(request):

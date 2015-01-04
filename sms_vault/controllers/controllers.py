@@ -8,6 +8,7 @@ from ..forms import ContactForm
 from ..lib import sms_processors
 from ..lib.stats import get_contact_message_counts
 from ..lib.sort import alphanumeric_sort
+from collections import OrderedDict
 
 log = logging.getLogger(__name__)
 
@@ -18,6 +19,17 @@ def homepage(request):
     sorted_contacts = alphanumeric_sort(msg_counts.keys())
     
     return {'msg_counts': msg_counts, 'contact_names': sorted_contacts}
+
+
+@view_config(route_name='msg_counts', renderer='json')
+def msg_counts(request):
+    msg_counts = get_contact_message_counts(request.session['logged_in_user'])
+    sorted_contacts = alphanumeric_sort(msg_counts.keys())
+    ret = OrderedDict()
+    for contact in sorted_contacts:
+        ret[contact] = msg_counts[contact]
+    
+    return ret
 
 
 @view_config(route_name='import_smses', renderer='import_smses.mako')

@@ -69,7 +69,7 @@ class Contact(Base, OrmObject):
     
     @classmethod
     def by_name(cls, owner_id, name):
-        return db.query(cls).filter_by(owner_id=owner_id, name=name).one()
+        return db.query(cls).filter_by(owner_id=owner_id, name=name).first()
 
 
 class ContactCellNumber(Base, OrmObject):

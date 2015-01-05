@@ -38,6 +38,7 @@ def contact_messages_view(request):
     msgs = contact_messages(request.session['logged_in_user'],
                             request.matchdict['contact'])
     
+    log.warn(msgs)
     return msgs
 
 

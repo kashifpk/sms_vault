@@ -70,8 +70,11 @@ def contact_messages(owner_id, contact_name):
     contact = Contact.by_name(owner_id, contact_name)
     cell_numbers = []
     
-    for cellnum in contact.cell_numbers:
-        cell_numbers.append(cellnum.cell_number)
+    if contact:
+        for cellnum in contact.cell_numbers:
+            cell_numbers.append(cellnum.cell_number)
+    else:
+        cell_numbers.append(contact_name)
     
     #select * from smses where owner_id='kashif' and
     #( (incoming='t' and msg_from in ('+923437158780')) OR (outgoing='t' and msg_to in ('+923437158780')) )

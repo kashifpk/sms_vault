@@ -90,25 +90,26 @@ require(["dojo/dom", "dojo/request", "dojo/domReady!"],
               // Display the text file content
               //console.log(response);
               var msg_counts = JSON.parse(response);
+              
               content = '';
-              for(var contact in msg_counts){
-                
-                var total_msgs = parseInt(msg_counts[contact]['incoming'])+parseInt(msg_counts[contact]['outgoing']);
+              for(var idx in msg_counts){
+                msg_count = msg_counts[idx];
+                var total_msgs = parseInt(msg_count['incoming'])+parseInt(msg_count['outgoing']);
                 
                 li_str = ' \
                 <li role="presentation"> \
-                  <a href="javascript:load_messages(\'' + contact + '\');">' + contact + ' \
+                  <a href="javascript:load_messages(\'' + msg_count['contact_name'] + '\');">' + msg_count['contact_name'] + ' \
                     <span class="badge"> \
                       <span class="glyphicon glyphicon-resize-small" aria-hidden="true"></span>' + \
                       total_msgs + \
                     '</span> \
                     <span class="badge"> \
                       <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>' + \
-                      msg_counts[contact]['incoming'] + \
+                      msg_count['incoming'] + \
                     '</span> \
                     <span class="badge"> \
                       <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>' + \
-                      msg_counts[contact]['outgoing'] + \
+                      msg_count['outgoing'] + \
                     '</span> \
                   </a> \
                 </li>';

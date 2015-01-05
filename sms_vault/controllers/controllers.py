@@ -14,20 +14,19 @@ log = logging.getLogger(__name__)
 
 @view_config(route_name='home', renderer='home.mako')
 def homepage(request):
-    msg_counts = get_contact_message_counts(request.session['logged_in_user'])
-    log.warn(msg_counts)
-    sorted_contacts = alphanumeric_sort(msg_counts.keys())
-    
-    return {'msg_counts': msg_counts, 'contact_names': sorted_contacts}
+    return {}
 
 
 @view_config(route_name='msg_counts', renderer='json')
 def msg_counts(request):
     msg_counts = get_contact_message_counts(request.session['logged_in_user'])
     sorted_contacts = alphanumeric_sort(msg_counts.keys())
-    ret = OrderedDict()
+    
+    ret = []
     for contact in sorted_contacts:
-        ret[contact] = msg_counts[contact]
+        dict_item = msg_counts[contact]
+        dict_item['contact_name'] = contact
+        ret.append(dict_item)
     
     return ret
 

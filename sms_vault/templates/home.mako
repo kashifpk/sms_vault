@@ -28,6 +28,23 @@ SMS Vault - SMS Backup Manager
 </style>
 <script type="application/x-javascript">
 
+function update_msg_counts(response) {
+  var msg_counts = JSON.parse(response);
+  
+  content = '';
+  for(var idx in msg_counts){
+    var item = msg_counts[idx];
+    
+    item_str = ' \
+      <button class="btn btn-primary" onclick="javascript:">' + item[0] + \
+        ' <span class="badge"> (' + item[1] + ') </span></button>';
+    //console.log(li_str);
+    content += item_str;
+  }
+  
+  return content;
+}
+
 function load_messages(contact_name){
   require(["dojo/dom", "dojo/request"],
     function(dom, request){
@@ -76,19 +93,28 @@ function load_messages(contact_name){
           }
         );
       
+      var extra_target = dom.byId("extra_options");
+        
+      request.get("/msg_count/year/" + contact_name).then(
+        function(response){
+            extra_target.innerHTML = update_msg_counts(response);
+        },
+        function(error){
+            // Display the error returned
+            extra_target.innerHTML = "<div class=\"error\">"+error+"<div>";
+        }
+      );
   });
   
 }
 
 require(["dojo/dom", "dojo/request", "dojo/domReady!"],
     function(dom, request){
-        // Results will be displayed in resultDiv
+        
         var target = dom.byId("contacts");
         
         request.get("${request.route_url('msg_counts')}").then(
           function(response){
-              // Display the text file content
-              //console.log(response);
               var msg_counts = JSON.parse(response);
               
               content = '';
@@ -121,6 +147,18 @@ require(["dojo/dom", "dojo/request", "dojo/domReady!"],
           function(error){
               // Display the error returned
               target.innerHTML = "<div class=\"error\">"+error+"<div>";
+          }
+        );
+        
+        var extra_target = dom.byId("extra_options");
+        
+        request.get("/msg_count/year").then(
+          function(response){
+              extra_target.innerHTML = update_msg_counts(response);
+          },
+          function(error){
+              // Display the error returned
+              extra_target.innerHTML = "<div class=\"error\">"+error+"<div>";
           }
         );
     }

@@ -45,28 +45,56 @@ def contact_messages_view(request):
 
 @view_config(route_name='range_count', renderer='json')
 def range_count(request):
+    """
+    Valid url examples:
+    
+    /msg_count/year                       (Display year wise message count of all contacts)
+    /msg_count/month/_ALL_/2014           (Display month wise message counts of all contacts for the year 2014)
+    /msg_count/day/_ALL_/2014/11          (Display day wise message counts of all contacts for year 2014 and month 11)
+    
+    /msg_count/year/contactname           (Display year wise message count of a specific contact)  
+    /msg_count/month/contactname/2014     (Display month wise message counts of a specific contact for the year 2014)
+    /msg_count/day/contactname/2014/11    (Display day wise message counts of a specific contact for year 2014 and month 11)
+    
+    """
         
     range_type = request.matchdict['range_type']
-    date_spec = request.matchdict['date_spec']
+    date_spec = list(request.matchdict['date_spec'])
     
-    contact = None,
-    additional_conditions = None
+    contact = None
+    additional_conditions = {}
     
     if date_spec:
-        contact = request.matchdict.get('contact', None)
+        try:
+            contact = date_spec.pop(0)
+            if '_ALL_' == contact:
+                contact = None
+            
+            additional_conditions['year'] = date_spec.pop(0)
+            additional_conditions['month'] = date_spec.pop(0)
+        except IndexError:
+            pass
+        
     
+    # Sanity checks
     assert range_type in ('year', 'month', 'day')
+    if 'month' == range_type:
+        assert 'year' in additional_conditions.keys()
+    elif 'day' == range_type:
+        assert 'year' in additional_conditions.keys()
+        assert 'month' in additional_conditions.keys()
     
-    msgs = get_date_range_counts(request.session['logged_in_user'],
-                                 range_type,
-                                 contact)
+    msgs = get_date_range_counts(owner_id=request.session['logged_in_user'],
+                                 range_type=range_type,
+                                 contact_name=contact,
+                                 additional_conditions=additional_conditions)
     
     log.warn(msgs)
     return msgs
 
 
 @view_config(route_name='import_smses', renderer='import_smses.mako')
-def imprt_smses(request):
+def import_smses(request):
     "Allow importing smses"
 
     print(request.POST)

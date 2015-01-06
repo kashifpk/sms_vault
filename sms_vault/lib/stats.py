@@ -64,9 +64,10 @@ def get_contact_message_counts(user_id):
     return contact_counts
 
 
-def get_contact_cell_numbers(contact):
+def get_contact_cell_numbers(owner_id, contact_name):
     "Given a contact name returns it's cell numbers"
     
+    contact = Contact.by_name(owner_id, contact_name)
     cell_numbers = []
     
     if contact:
@@ -80,8 +81,7 @@ def get_contact_cell_numbers(contact):
 def contact_messages(owner_id, contact_name):
     "returns contact messages for given contact"
     
-    contact = Contact.by_name(owner_id, contact_name)
-    cell_numbers = get_contact_cell_numbers(contact)
+    cell_numbers = get_contact_cell_numbers(owner_id, contact_name)
     
     #select * from smses where owner_id='kashif' and
     #( (incoming='t' and msg_from in ('+923437158780')) OR (outgoing='t' and msg_to in ('+923437158780')) )
@@ -117,14 +117,9 @@ def get_date_range_counts(owner_id, range_type, contact_name=None, additional_co
     :rtype: A list of tuples with first item being the range and second being the count
     """
     
-    # TODO: Convert this function to accept year, month or day as parameter
-    # and then return group count for that.
-    # Update: Need to re-think this, month needs year and day needs year and month
-    
     cellnum_str = ''
     if contact_name:
-        contact = Contact.by_name(owner_id, contact_name)
-        cell_numbers = get_contact_cell_numbers(contact)
+        cell_numbers = get_contact_cell_numbers(owner_id, contact_name)
         cellnum_str = "'" + "','".join(cell_numbers) + "'"
 
     query_str = "SELECT date_part('{}', CAST(timestamp as DATE)) as range_count, count(id) ".format(range_type) + \

@@ -64,10 +64,9 @@ def get_contact_message_counts(user_id):
     return contact_counts
 
 
-def contact_messages(owner_id, contact_name):
-    "returns contact messages for given contact"
+def get_contact_cell_numbers(contact):
+    "Given a contact name returns it's cell numbers"
     
-    contact = Contact.by_name(owner_id, contact_name)
     cell_numbers = []
     
     if contact:
@@ -75,6 +74,14 @@ def contact_messages(owner_id, contact_name):
             cell_numbers.append(cellnum.cell_number)
     else:
         cell_numbers.append(contact_name)
+    
+    return cell_numbers
+
+def contact_messages(owner_id, contact_name):
+    "returns contact messages for given contact"
+    
+    contact = Contact.by_name(owner_id, contact_name)
+    cell_numbers = get_contact_cell_numbers(contact)
     
     #select * from smses where owner_id='kashif' and
     #( (incoming='t' and msg_from in ('+923437158780')) OR (outgoing='t' and msg_to in ('+923437158780')) )
@@ -96,3 +103,32 @@ def contact_messages(owner_id, contact_name):
     ).order_by(SMS.timestamp.desc())
     
     return query.all()
+
+def get_distinct_years(owner_id, contact_name=None):
+    "Returns distinct years for which SMS records are available for given owner and optionally contact"
+    
+    # TODO: Convert this function to accept year, month or day as parameter
+    # and then return group count for that.
+    contact = Contact.by_name(owner_id, contact_name)
+    cell_numbers = get_contact_cell_numbers(contact)
+    cellnum_str = "'" + "','".join(cell_numbers) + "'"
+
+    query_str = "SELECT date_part('year', CAST(timestamp as DATE)) as part_count, count(id) " + \
+                "FROM smses WHERE owner_id='{}'".format(owner_id)
+    if contact_name:
+        query_str += " AND ( (incoming='t' and msg_from in ({cellnums})) OR (outgoing='t' and msg_to in ({cellnums})) )".format(
+            cellnums=cellnum_str
+        )
+    query_str += " group by part_count"
+    
+    log.info(query_str)
+    results = db.execute(query_str)
+    
+    log.info(results)
+    
+    range_count = []
+    for result in results:
+        log.info(result)
+        range_count.append((int(result[0]), result[1]))
+    
+    return range_count

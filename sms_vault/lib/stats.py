@@ -109,13 +109,17 @@ def get_distinct_years(owner_id, contact_name=None):
     
     # TODO: Convert this function to accept year, month or day as parameter
     # and then return group count for that.
-    contact = Contact.by_name(owner_id, contact_name)
-    cell_numbers = get_contact_cell_numbers(contact)
-    cellnum_str = "'" + "','".join(cell_numbers) + "'"
+    
+    cellnum_str = ''
+    if contact_name:
+        contact = Contact.by_name(owner_id, contact_name)
+        cell_numbers = get_contact_cell_numbers(contact)
+        cellnum_str = "'" + "','".join(cell_numbers) + "'"
 
     query_str = "SELECT date_part('year', CAST(timestamp as DATE)) as part_count, count(id) " + \
                 "FROM smses WHERE owner_id='{}'".format(owner_id)
-    if contact_name:
+    
+    if cellnum_str:
         query_str += " AND ( (incoming='t' and msg_from in ({cellnums})) OR (outgoing='t' and msg_to in ({cellnums})) )".format(
             cellnums=cellnum_str
         )

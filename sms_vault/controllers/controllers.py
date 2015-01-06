@@ -7,8 +7,8 @@ from ..models import db
 from ..forms import ContactForm
 from ..lib import sms_processors
 from ..lib.stats import (get_contact_message_counts,
-                         contact_messages,
-                         get_distinct_years)
+                         get_date_range_counts,
+                         contact_messages)
 
 from ..lib.sort import alphanumeric_sort
 from collections import OrderedDict
@@ -43,11 +43,23 @@ def contact_messages_view(request):
     log.warn(msgs)
     return msgs
 
-@view_config(route_name='msg_years', renderer='json')
-def msg_years(request):
+@view_config(route_name='range_count', renderer='json')
+def range_count(request):
+        
+    range_type = request.matchdict['range_type']
+    date_spec = request.matchdict['date_spec']
     
-    msgs = get_distinct_years(request.session['logged_in_user'],
-                            request.matchdict['contact'])
+    contact = None,
+    additional_conditions = None
+    
+    if date_spec:
+        contact = request.matchdict.get('contact', None)
+    
+    assert range_type in ('year', 'month', 'day')
+    
+    msgs = get_date_range_counts(request.session['logged_in_user'],
+                                 range_type,
+                                 contact)
     
     log.warn(msgs)
     return msgs

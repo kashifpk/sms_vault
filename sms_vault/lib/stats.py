@@ -104,11 +104,22 @@ def contact_messages(owner_id, contact_name):
     
     return query.all()
 
-def get_distinct_years(owner_id, contact_name=None):
-    "Returns distinct years for which SMS records are available for given owner and optionally contact"
+def get_date_range_counts(owner_id, range_type, contact_name=None, additional_conditions=None):
+    """
+    Returns distinct years for which SMS records are available for given owner and optionally contact
+    
+    :param owner_id: ID of the owner for which the range count is desired
+    :param range_type: Type of range count can be any of year, month or day
+    :param contact_name: (Optional) Limit the counts for only the given contact
+    :param addtional_conditions: (Optional) Dictionary of conditions required if
+    range_type is month or day, specfies the year for month and year and month for day
+    
+    :rtype: A list of tuples with first item being the range and second being the count
+    """
     
     # TODO: Convert this function to accept year, month or day as parameter
     # and then return group count for that.
+    # Update: Need to re-think this, month needs year and day needs year and month
     
     cellnum_str = ''
     if contact_name:
@@ -116,14 +127,18 @@ def get_distinct_years(owner_id, contact_name=None):
         cell_numbers = get_contact_cell_numbers(contact)
         cellnum_str = "'" + "','".join(cell_numbers) + "'"
 
-    query_str = "SELECT date_part('year', CAST(timestamp as DATE)) as part_count, count(id) " + \
+    query_str = "SELECT date_part('{}', CAST(timestamp as DATE)) as range_count, count(id) ".format(range_type) + \
                 "FROM smses WHERE owner_id='{}'".format(owner_id)
     
+    if additional_conditions:
+        for k,v in additional_conditions.items():
+            query_str += " AND {v}=date_part('{k}', CAST(timestamp as DATE))".format(k=k, v=v)
+        
     if cellnum_str:
         query_str += " AND ( (incoming='t' and msg_from in ({cellnums})) OR (outgoing='t' and msg_to in ({cellnums})) )".format(
             cellnums=cellnum_str
         )
-    query_str += " group by part_count"
+    query_str += " group by range_count"
     
     log.info(query_str)
     results = db.execute(query_str)

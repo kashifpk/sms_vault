@@ -22,8 +22,8 @@ def application_routes(config):
     config.add_route('home', '/')
     config.add_route('msg_counts', '/msg_counts')
     config.add_route('contact_msgs', '/{contact}/messages')
-    config.add_route('msg_years', '/{contact}/messages/years')
-
+    config.add_route('range_count', '/msg_count/{range_type}/*date_spec')
+    
     config.add_route('contact', '/contact')
     config.add_route('import_smses', '/import')
     config.add_route('import_contacts', '/import_contacts')

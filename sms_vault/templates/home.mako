@@ -36,7 +36,7 @@ function update_msg_counts(response) {
     var item = msg_counts[idx];
     
     item_str = ' \
-      <button class="btn btn-primary" onclick="javascript:">' + item[0] + \
+      <button class="btn btn-sm btn-primary" onclick="javascript:">' + item[0] + \
         ' <span class="badge"> (' + item[1] + ') </span></button>';
     //console.log(li_str);
     content += item_str;
@@ -93,7 +93,7 @@ function load_messages(contact_name){
           }
         );
       
-      var extra_target = dom.byId("extra_options");
+      var extra_target = dom.byId("contact_extra_options");
         
       request.get("/msg_count/year/" + contact_name).then(
         function(response){
@@ -175,10 +175,12 @@ require(["dojo/dom", "dojo/request", "dojo/domReady!"],
             <button class="btn btn-primary" type="button">Search</button>
           </span>
         </div>
+        <br />
+        <div id="extra_options">Extra options come here</div>
         
       </div>
       
-      <div style="overflow-y: auto; height: 500px;">
+      <div style="overflow-y: auto; height: 470px;">
         <ul id="contacts" class="nav nav-pills nav-stacked">
         </ul>
       </div>
@@ -186,8 +188,8 @@ require(["dojo/dom", "dojo/request", "dojo/domReady!"],
     <div class="panel panel-primary col-md-6 col-lg-8 col-sm-12 col-xs-12">
       <div id="conversation_heading" class="panel-heading">Please select a contact to view it's conversation</div>
       <div class="panel-body">
-        <div id="extra_options" class="well bg-info">Extra options come here</div>
-        <div style="overflow-y: auto; height: 425px;">
+        <div id="contact_extra_options">Extra options come here</div>
+        <div style="overflow-y: auto; height: 490px;">
           <div id="conversation">
             
           </div>
